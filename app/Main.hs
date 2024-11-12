@@ -7,7 +7,7 @@ import Graphics.Gloss.Data.Vector
 -- -- Main function to display the tree
 -- main :: IO ()
 -- main = display (InWindow "Pythagorean Tree" (800, 800) (10, 10)) white (pictures [color red $ circle 2, polygon[(0,0),(0,50),(50,50),(50,0)], drawTree 10 (0,50) (50,50) 53.13])
-
+-- test
 -- Function to draw the tree fractal
 drawTree :: Int -> Point -> Point -> Float -> Picture
 drawTree 0 _ _ _ = Blank  -- Base case: no more recursion when depth is 0
