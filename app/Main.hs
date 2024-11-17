@@ -73,10 +73,10 @@ drawTree depth (xa, ya) (xb, yb) angle seasontree =
 -- 定义颜色渐变函数，根据深度控制颜色变化
 treeColor :: Int -> String -> Color
 treeColor depth seasontree 
-  | seasontree == "Spring" = makeColor (0.0) (0.4 + 0.8 * depthRatio) (0.0) 1
-  | seasontree == "Summber" = makeColor (0.0) (0.8 + 0.8 * depthRatio) (0.0) 1
-  | seasontree == "Autumn" = makeColor (0.8 * depthRatio) (0.5 * depthRatio) (0.0) 1
-  | seasontree == "Winter" = makeColor (0.2 + 0.8 * depthRatio) (0.5 * depthRatio) (0.0) 1
+  | seasontree == "Spring" = makeColor (0.56) (0.76 + 0.8 * depthRatio) (0.52) 1
+  | seasontree == "Summber" = makeColor (0.1) (0.67 + 0.8 * depthRatio) (0.04) 1
+  | seasontree == "Autumn" = makeColor (0.86 + 0.8 * depthRatio) (0.35 + 0.5 * depthRatio) (0.08) 1
+  | seasontree == "Winter" = makeColor (0.63 + 0.8 * depthRatio) (0.37 + 0.5 * depthRatio) (0.0) 1
   | otherwise = makeColor (0.0) (0.5 * depthRatio) (0.0) 1
   where
     maxDepth = 10  -- 你可以设置最大递归深度为 10 或其他值，以控制颜色变化的速度
@@ -95,14 +95,30 @@ background = white
 brown :: Color
 brown = makeColor 0.6 0.3 0.0 1.0
 
-pink :: Color
-pink = makeColor 1.0 0.75 0.8 1.0
+springYellow :: Color
+springYellow = makeColor 0.93 0.98 0.71 1
 
-darkGreen :: Color
-darkGreen = makeColor 0.0 0.5 0.0 1.0
+springGreen :: Color
+springGreen = makeColor 0.59 0.65 0.29 1
 
-purple :: Color
-purple = makeColor 0.5 0 0.5 1
+summerYellow :: Color
+summerYellow = makeColor 1 0.87 0.28 1
+
+summerBlue :: Color
+summerBlue = makeColor 0.08 0.74 0.92 1
+
+autumnOrange :: Color
+autumnOrange = makeColor 0.95 0.51 0.4 1
+
+autumnBrown :: Color
+autumnBrown = makeColor 0.76 0.47 0.15 1
+
+winterBlue :: Color
+winterBlue = makeColor 0.63 0.72 0.9 1
+
+winterBlack :: Color
+winterBlack = makeColor 0.2 0.42 0.82 1
+
 
 -- 绘制窗户框架
 windowFrame :: Picture
@@ -133,25 +149,25 @@ makeGradient y seasonColortop seasonCOlorbottom = mixColors (fromIntegral y / fr
 
 springScene :: Picture
 springScene = pictures
-  [ gradientBackground yellow green
+  [ gradientBackground springYellow springGreen
   ]
 
 -- 绘制夏天背景
 summerScene :: Picture
 summerScene = pictures
-  [ gradientBackground (makeColor 0.56 0.85 1 1)  (makeColor 0.13 0.5 1 1)
+  [ gradientBackground summerYellow summerBlue
   ]
 
 -- 绘制秋天背景
 autumnScene :: Picture
 autumnScene = pictures
-  [ gradientBackground yellow orange
+  [ gradientBackground autumnOrange autumnBrown
   ]
 
 -- 绘制冬天背景
 winterScene :: Picture
 winterScene = pictures
-  [ gradientBackground pink purple
+  [ gradientBackground winterBlue winterBlack
   , color white $ translate (200) (-100) $ circleSolid 60 -- 雪人身体
   , color white $ translate (200) (-30) $ circleSolid 40  -- 雪人头部
   , color (white) $ translate 0 (-170) $ rectangleSolid 800 20 -- 积雪
