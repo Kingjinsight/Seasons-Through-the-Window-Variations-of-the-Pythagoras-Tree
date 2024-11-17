@@ -1,11 +1,49 @@
-  
 import Graphics.Gloss
 import Graphics.Gloss.Data.Vector
-import System.Random()
-import System.IO.Unsafe()
-import Graphics.Gloss.Interface.Pure.Display()
+import System.Random
+import System.IO.Unsafe
+import Graphics.Gloss.Interface.Pure.Display
+import Data.List
 
+-- Constants for snowflakes
+windowWidth, windowHeight :: Int
+windowWidth = 800
+windowHeight = 600
+numberOfSnowflakes :: Int
+numberOfSnowflakes = 100
 
+type Snowflake = (Float, Float, Float, Float) -- (x, y, size, drift)
+type State = (Int, Int, [Snowflake]) -- (season, counter, snowflakes)
+
+-- Snowflake functions
+generateSnowflakes :: StdGen -> [Snowflake]
+generateSnowflakes gen = take numberOfSnowflakes $ zip4 xs ys sizes drifts
+  where
+    (genX, genRest1) = split gen
+    (genY, genRest2) = split genRest1
+    (genSize, genDrift) = split genRest2
+    xs = randomRs (-fromIntegral windowWidth / 2, fromIntegral windowWidth / 2) genX
+    ys = randomRs (0, fromIntegral windowHeight) genY
+    sizes = randomRs (5, 15) genSize
+    drifts = randomRs (-1, 1) genDrift
+
+updateSnowflakes :: Float -> [Snowflake] -> [Snowflake]
+updateSnowflakes dt = map updateSnowflake
+  where
+    updateSnowflake (x, y, size, drift) =
+      let newY = y - dt * (size * 5) -- Larger snowflakes fall faster
+          wrappedY = if newY < -fromIntegral windowHeight / 2
+                     then fromIntegral windowHeight / 2
+                     else newY
+          newX = x + drift -- Apply horizontal drift
+      in (newX, wrappedY, size, drift)
+
+drawSnowflakes :: [Snowflake] -> Picture
+drawSnowflakes = Pictures . map drawSnowflake
+  where
+    drawSnowflake (x, y, size, _) = Translate x y $ Color white $ circleSolid size
+
+-- Seasonal scenes (your existing code) !!!EXISTIED CODE HERE BELOW!!!
 drawTree :: Int -> Point -> Point -> Float -> String -> Picture
 drawTree 0 _ _ _ _ = Blank  -- 基本情况：深度为 0 时停止递归
 drawTree depth (xa, ya) (xb, yb) angle seasontree =
@@ -63,7 +101,8 @@ pink = makeColor 1.0 0.75 0.8 1.0
 darkGreen :: Color
 darkGreen = makeColor 0.0 0.5 0.0 1.0
 
-
+purple :: Color
+purple = makeColor 0.5 0 0.5 1
 
 -- 绘制窗户框架
 windowFrame :: Picture
@@ -75,28 +114,44 @@ windowFrame = color brown $ pictures
 
   ]
 
+
+
+gradientBackground :: Color -> Color ->Picture
+gradientBackground seasonColortop seasonCOlorbottom = Pictures [ translate 0 (fromIntegral y - fromIntegral windowHeight / 2)
+                                $ color (makeGradient y seasonColortop seasonCOlorbottom) (rectangleSolid (fromIntegral windowWidth) 2)
+                                | y <- [0..windowHeight]]
+
+-- 生成渐变颜色
+makeGradient :: Int -> Color -> Color -> Color
+makeGradient y seasonColortop seasonCOlorbottom = mixColors (fromIntegral y / fromIntegral windowHeight)
+                           (1 - fromIntegral y / fromIntegral windowHeight)
+                           seasonColortop
+                           seasonCOlorbottom
+
+
 -- 绘制春天背景
+
 springScene :: Picture
 springScene = pictures
-  [ color (light green) $ rectangleSolid 800 600
+  [ gradientBackground yellow green
   ]
 
 -- 绘制夏天背景
 summerScene :: Picture
 summerScene = pictures
-  [ color (light blue) $ rectangleSolid 800 600
+  [ gradientBackground (makeColor 0.56 0.85 1 1)  (makeColor 0.13 0.5 1 1)
   ]
 
 -- 绘制秋天背景
 autumnScene :: Picture
 autumnScene = pictures
-  [ color (orange) $ rectangleSolid 800 600
+  [ gradientBackground yellow orange
   ]
 
 -- 绘制冬天背景
 winterScene :: Picture
 winterScene = pictures
-  [ color (light cyan) $ rectangleSolid 800 600
+  [ gradientBackground pink purple
   , color white $ translate (200) (-100) $ circleSolid 60 -- 雪人身体
   , color white $ translate (200) (-30) $ circleSolid 40  -- 雪人头部
   , color (white) $ translate 0 (-170) $ rectangleSolid 800 20 -- 积雪
@@ -110,20 +165,32 @@ seasonScene 2 = pictures [autumnScene,color brown $ polygon[(-200,-100),(-200,0)
 seasonScene 3 = pictures [winterScene,color brown $ polygon[(-200,-100),(-200,0),(-100,0),(-100,-100)], drawTree 1 (-200,0) (-100,0) 53.13 "Winter"]
 seasonScene _ = pictures [springScene,color brown $ polygon[(-200,-100),(-200,0),(-100,0),(-100,-100)], drawTree 2 (-200,-60) (-160,-60) 45 "Spring"]
 
--- 绘制窗外四季景色
-drawScene :: Int -> Picture
-drawScene season = pictures
-  [ seasonScene season
-  , windowFrame
-  ]
-  
 
--- 主函数，轮流展示四季景色
+-- Combine seasons and snowflakes
+drawScene :: State -> Picture
+drawScene (season, _, snowflakes) =
+  pictures
+    [ seasonScene season -- Existing seasonal scene
+    , drawSnowflakes snowflakes -- Draw snowflakes
+    , windowFrame -- Window frame
+    ]
+
+-- Main function
 main :: IO ()
-main = simulate window background 1 (0, 0) render update
+main = do
+  gen <- getStdGen
+  let snowflakes = generateSnowflakes gen
+  simulate
+    window
+    background
+    60
+    (0, 0, snowflakes) -- Initial state: season = 0, counter = 0, snowflakes = initial set
+    render
+    update
   where
-    render (season, _) = drawScene (season `mod` 4)
-    update _ _ (season, counter) = 
-      if counter >= 1  -- Adjust this value to slow down further
-      then ((season + 1) `mod` 4, 0)  -- Reset counter and change season
-      else (season, counter + 1)  -- Increment counter only
+    render state = drawScene state
+    update _ dt (season, counter, snowflakes) =
+      let newSnowflakes = updateSnowflakes dt snowflakes
+          newCounter = if counter >= 60 then 0 else counter + 1
+          newSeason = if counter >= 60 then (season + 1) `mod` 4 else season
+      in (newSeason, newCounter, newSnowflakes)
