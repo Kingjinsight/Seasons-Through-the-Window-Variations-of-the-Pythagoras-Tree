@@ -63,9 +63,7 @@ drawObjects season = Pictures . map (drawObject season)
           Color white $
           circleSolid size
 
---(-size, -size / 2), (0, size), (size, -size / 2)
 
--- Seasonal scenes (your existing code) !!!EXISTIED CODE HERE BELOW!!!
 drawTree :: Int -> Point -> Point -> Float -> String -> Picture
 drawTree 0 _ _ _ _ = Blank  
 drawTree depth (xa, ya) (xb, yb) angle seasontree =
@@ -101,11 +99,11 @@ treeColor depth seasontree
   | otherwise = makeColor (0.0) (0.5 * depthRatio) (0.0) 1
 
   where
-    maxDepth = 10  -- 你可以设置最大递归深度为 10 或其他值，以控制颜色变化的速度
+    maxDepth = 10  
     depthRatio = fromIntegral depth / fromIntegral maxDepth
 
 
--- 定义窗口大小和标题
+-- Define window size and title
 window :: Display
 window = InWindow "Seasons from the Window" (800, 600) (100, 100)
 
