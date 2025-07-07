@@ -2,7 +2,7 @@
 
 This project is a Haskell program that creates a visual simulation of seasonal scenes with falling snowflakes using the **Gloss** graphics library. It combines dynamic visual effects, such as snowfall, with static seasonal Pythagoras tree representations.
 
-[Github Link](https://github.com/King-141319/Legendary_Tree/tree/master)
+![demo-gif](/tree-demo.gif)
 
 ## Table of Contents
 
